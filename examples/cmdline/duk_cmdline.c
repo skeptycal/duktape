@@ -1574,3 +1574,35 @@ int main(int argc, char *argv[]) {
 	fflush(stderr);
 	exit(1);
 }
+
+/* Example of how a native stack check can be implemented in a platform
+ * specific manner for DUK_USE_NATIVE_STACK_CHECK().  This example is for
+ * (Linux) pthreads, and rejects further native recursion if less than
+ * 16kB stack is left (conservative).  Enable manually.
+ */
+#if 1  /* FIXME */
+#define _GNU_SOURCE
+#include <pthread.h>
+int duk_native_stack_check(void) {
+	pthread_attr_t attr;
+	void *stackaddr;
+	size_t stacksize;
+	char *ptr;
+	char *ptr_base;
+	ptrdiff_t remain;
+
+	(void) pthread_getattr_np(pthread_self(), &attr);
+	(void) pthread_attr_getstack(&attr, &stackaddr, &stacksize);
+	ptr = (char *) &stacksize;  /* Rough estimate of current stack pointer. */
+	ptr_base = (char *) stackaddr;
+	remain = ptr - ptr_base;
+
+#if 0
+	fprintf(stderr, "STACK CHECK: stackaddr=%p, stacksize=%ld, ptr=%p, remain=%ld\n", stackaddr, (long) stacksize, (void *) ptr, (long) remain);
+#endif
+	if (remain < 16384) {
+		return 1;
+	}
+	return 0;  /* 0: no error, != 0: throw RangeError */
+}
+#endif
