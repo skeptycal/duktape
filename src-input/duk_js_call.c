@@ -46,6 +46,7 @@ DUK_LOCAL DUK_NOINLINE void duk__call_c_recursion_limit_check_slowpath(duk_hthre
 	/* When augmenting an error, the effective limit is a bit higher.
 	 * Check for it only if the fast path check fails.
 	 */
+	/* FIXME: macro argument, 'extra'? */
 #if defined(DUK_USE_AUGMENT_ERROR_THROW) || defined(DUK_USE_AUGMENT_ERROR_CREATE)
 	if (thr->heap->augmenting_error) {
 		if (thr->heap->call_recursion_depth < thr->heap->call_recursion_limit + DUK__AUGMENT_CALL_RELAX_COUNT) {
@@ -2182,6 +2183,10 @@ DUK_LOCAL duk_int_t duk__handle_call_raw(duk_hthread *thr,
 		 */
 		duk__call_c_recursion_limit_check(thr);
 		thr->heap->call_recursion_depth++;
+		/* FIXME internal macro/helper */
+		if (DUK_USE_NATIVE_STACK_CHECK() != 0) {
+			DUK_ERROR_RANGE(thr, DUK_STR_C_CALLSTACK_LIMIT);
+		}
 
 		/* [ ... func this | arg1 ... argN ] ('this' must precede new bottom) */
 
