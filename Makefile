@@ -192,6 +192,7 @@ ifdef SYSTEMROOT  # Windows
 CCLIBS = -lm -lws2_32
 else
 CCLIBS = -lm
+CCLIBS += -lpthread
 endif
 
 # Emscripten options:
